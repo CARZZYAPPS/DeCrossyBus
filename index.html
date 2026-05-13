@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -203,24 +201,33 @@
 
             const textTexture = new THREE.CanvasTexture(canvas);
             const textMat = new THREE.MeshPhongMaterial({ map: textTexture, transparent: true });
-            const textGeo = new THREE.PlaneGeometry(BUS_SIZE * 1.2, 4);
-
-            const leftText = new THREE.Mesh(textGeo, textMat);
+            
+            // Side Labels
+            const sideTextGeo = new THREE.PlaneGeometry(BUS_SIZE * 1.2, 4);
+            const leftText = new THREE.Mesh(sideTextGeo, textMat);
             leftText.position.set(BUS_SIZE / 2 + 0.1, 8, 0);
             leftText.rotation.y = Math.PI / 2;
             busGroup.add(leftText);
 
-            const rightText = new THREE.Mesh(textGeo, textMat);
+            const rightText = new THREE.Mesh(sideTextGeo, textMat);
             rightText.position.set(-(BUS_SIZE / 2 + 0.1), 8, 0);
             rightText.rotation.y = -Math.PI / 2;
             busGroup.add(rightText);
+
+            // Top (Roof) Label
+            const topTextGeo = new THREE.PlaneGeometry(BUS_SIZE * 0.8, BUS_SIZE * 0.6);
+            const topText = new THREE.Mesh(topTextGeo, textMat);
+            topText.position.set(0, 14.1, 0); // Positioned slightly above the roof
+
+            topText.rotation.x = -Math.PI / 2; // Flat on the roof
+            topText.rotation.z = Math.PI; // Correct orientation for behind-camera view
+            busGroup.add(topText);
 
             // Wheels
             const wheelGeo = new THREE.BoxGeometry(4, 4, 4);
             const wheelMat = new THREE.MeshPhongMaterial({ color: 0x222222 });
             const positions = [[-7, 2, 7], [7, 2, 7], [-7, 2, -7], [7, 2, -7]];
             positions.forEach(pos => {
-
                 const wheel = new THREE.Mesh(wheelGeo, wheelMat);
                 wheel.position.set(...pos);
                 busGroup.add(wheel);
@@ -230,6 +237,7 @@
             bus.position.set(0, 0, 0);
             scene.add(bus);
         }
+
 
         // Environment Helpers
         function createTree() {
@@ -241,7 +249,6 @@
             return tree;
         }
 
-
         function createRock() {
             const rock = new THREE.Mesh(new THREE.BoxGeometry(12, 8, 12), new THREE.MeshPhongMaterial({ color: 0x888888 }));
             rock.position.y = 4; rock.castShadow = true; return rock;
@@ -251,6 +258,7 @@
             const log = new THREE.Mesh(new THREE.BoxGeometry(45, 6, 25), new THREE.MeshPhongMaterial({ color: 0x7a4d2e }));
             log.position.y = 3; log.castShadow = true; return log;
         }
+
 
         function createTrain() {
             const train = new THREE.Group();
@@ -262,9 +270,7 @@
             return train;
         }
 
-
         function createLane(index) {
-            // Check previous lane to avoid consecutive hazards
             const prevLane = lanes[lanes.length - 1];
             const prevType = prevLane ? prevLane.type : 'forest';
             
@@ -272,8 +278,8 @@
             if (index <= 0) {
                 type = 'forest';
             } else if (prevType === 'river' || prevType === 'rail') {
-                // Force a non-hazard lane after a river or rail
                 const safeTypes = ['forest', 'road'];
+
                 type = safeTypes[Math.floor(Math.random() * safeTypes.length)];
             } else {
                 type = laneTypes[Math.floor(Math.random() * laneTypes.length)];
@@ -281,7 +287,6 @@
 
             const laneGroup = new THREE.Group();
             laneGroup.position.z = index * LANE_WIDTH;
-
 
             let color = 0x93c052;
             if (type === 'road') color = 0x444444;
@@ -294,6 +299,7 @@
             );
             plane.rotation.x = -Math.PI / 2;
             plane.receiveShadow = true;
+
             laneGroup.add(plane);
 
             const laneData = {
@@ -302,7 +308,6 @@
                 direction: Math.random() > 0.5 ? 1 : -1,
                 speed: 0.8 + Math.random() * 1.2,
                 trainTimer: 0,
-
                 warningMesh: null
             };
 
@@ -314,6 +319,7 @@
                     if (rand < 0.15) {
                         const tree = createTree(); tree.position.x = xPos; laneGroup.add(tree);
                     } else if (rand < 0.05) {
+
                         const rock = createRock(); rock.position.x = xPos; laneGroup.add(rock);
                         laneData.solids.push(xPos);
                     }
@@ -322,7 +328,6 @@
                 const track1 = new THREE.Mesh(new THREE.PlaneGeometry(2000, 2), new THREE.MeshPhongMaterial({color: 0x222222}));
                 track1.rotation.x = -Math.PI/2; track1.position.set(0, 0.2, 8); laneGroup.add(track1);
                 const track2 = track1.clone(); track2.position.z = -8; laneGroup.add(track2);
-
                 
                 const light = new THREE.Mesh(new THREE.BoxGeometry(4, 4, 4), new THREE.MeshPhongMaterial({color: 0x330000}));
                 light.position.set(100, 15, 0);
@@ -334,6 +339,7 @@
                 const initialCount = type === 'road' ? 2 : 3;
                 for(let i = 0; i < initialCount; i++) {
                     spawnVehicle(laneData, (Math.random() - 0.5) * 1000);
+
                 }
             }
 
@@ -342,7 +348,6 @@
         }
 
         function spawnVehicle(lane, initialX) {
-
             let obj;
             if (lane.type === 'road') {
                 obj = new THREE.Mesh(new THREE.BoxGeometry(25, 10, 15), new THREE.MeshPhongMaterial({ color: carColors[Math.floor(Math.random() * carColors.length)] }));
@@ -354,6 +359,7 @@
                 lane.speed = 12;
             }
             
+
             obj.position.x = (initialX !== undefined) ? initialX : (lane.direction * -800);
             lane.mesh.add(obj);
             lane.vehicles.push(obj);
@@ -362,7 +368,6 @@
         function setupInitialLanes() {
             lanes = [];
             for (let i = -5; i < 20; i++) {
-
                 lanes.push(createLane(i));
             }
         }
@@ -374,6 +379,7 @@
             let nextLaneIdx = currentLane;
 
             if (e.key === 'ArrowUp' || e.key === 'w') { nextZ += LANE_WIDTH; nextLaneIdx++; }
+
             else if (e.key === 'ArrowDown' || e.key === 's') { if (currentLane > -4) { nextZ -= LANE_WIDTH; nextLaneIdx--; } }
             else if (e.key === 'ArrowLeft' || e.key === 'a') { nextX += COLUMN_WIDTH; }
             else if (e.key === 'ArrowRight' || e.key === 'd') { nextX -= COLUMN_WIDTH; }
@@ -382,7 +388,6 @@
             if (targetLane && targetLane.solids.includes(nextX)) return;
 
             bus.position.x = nextX;
-
             bus.position.z = nextZ;
             
             if (nextLaneIdx !== currentLane) {
@@ -395,6 +400,7 @@
             }
         }
 
+
         function startGame() {
             document.getElementById('overlay').classList.add('hidden');
             score = 0; 
@@ -402,7 +408,6 @@
             document.getElementById('score').innerText = score;
             bus.position.set(0, 0, 0);
             lanes.forEach(l => scene.remove(l.mesh));
-
             setupInitialLanes();
             gameActive = true;
         }
@@ -415,6 +420,7 @@
             document.getElementById('start-btn').innerText = "RESTART";
         }
 
+
         function onWindowResize() {
             const aspect = window.innerWidth / window.innerHeight;
             const d = 150;
@@ -422,7 +428,6 @@
             camera.top = d; camera.bottom = -d;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
-
         }
 
         function animate() {
@@ -435,6 +440,7 @@
                     if (lane.type === 'road' && Math.random() < 0.007) spawnVehicle(lane);
                     if (lane.type === 'river' && Math.random() < 0.02) spawnVehicle(lane);
                     if (lane.type === 'rail') {
+
                         lane.trainTimer++;
                         if (lane.trainTimer > 180) {
                             if (lane.warningMesh) lane.warningMesh.material.color.set(Math.floor(Date.now()/200)%2 ? 0xff0000 : 0x330000);
@@ -442,7 +448,6 @@
                         if (lane.trainTimer > 240) {
                             spawnVehicle(lane);
                             lane.trainTimer = 0;
-
                             if (lane.warningMesh) lane.warningMesh.material.color.set(0x330000);
                         }
                     }
@@ -455,6 +460,7 @@
 
                         if (Math.abs(busWorldPos.x - objWorldPos.x) < (lane.type === 'rail' ? 120 : 25) && 
                             Math.abs(busWorldPos.z - objWorldPos.z) < 15) {
+
                             if (lane.type === 'river') {
                                 if (currentLane === lane.index) {
                                     onLog = true;
@@ -462,7 +468,6 @@
                                 }
                             } else {
                                 gameOver();
-
                             }
                         }
 
@@ -475,6 +480,7 @@
                     if (currentLane === lane.index && lane.type === 'river' && !onLog) {
                         gameOver(); 
                     }
+
                 });
 
                 camera.position.z = THREE.MathUtils.lerp(camera.position.z, bus.position.z - 200, 0.1);
@@ -482,7 +488,6 @@
                 
                 if (Math.abs(bus.position.x) > 400) gameOver();
             }
-
 
             renderer.render(scene, camera);
         }
