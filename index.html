@@ -1,3 +1,5 @@
+# DeCrossyBus: HOOOOOOY Death Screen
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -66,7 +68,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.7) 100%);
+            background: radial-gradient(circle, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.9) 100%);
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -76,12 +78,14 @@
         }
 
         #overlay h1 {
-            font-size: 80px;
+            font-size: 90px;
 
             margin: 0;
-            color: #ffdb00;
+            color: #ff3333;
             text-shadow: 6px 6px 0px #000;
             letter-spacing: -2px;
+            text-align: center;
+            line-height: 0.9;
         }
 
         #overlay p {
@@ -95,9 +99,9 @@
             border-radius: 15px;
         }
 
+
         button {
             padding: 18px 50px;
-
             font-size: 28px;
             background: #ffdb00;
             border: none;
@@ -115,9 +119,9 @@
         }
 
         #message-box {
+
             position: absolute;
             bottom: 60px;
-
             width: 100%;
             text-align: center;
             color: #fff;
@@ -135,9 +139,9 @@
 </head>
 <body>
     <div id="ui">
+
         <div>
             <div class="stat-label">Route Level</div>
-
             <div id="route-level">1</div>
         </div>
         <div>
@@ -155,15 +159,15 @@
         <div id="timer">00:00</div>
     </div>
 
-    <div id="message-box">CHECKPOINT!</div>
 
+    <div id="message-box">CHECKPOINT!</div>
 
     <div id="overlay">
         <h1 id="overlay-title">DeCrossyBus</h1>
         <p id="overlay-desc">
             Drive the route to the School.<br>
             <b>ALL</b> students must be on board to finish the level!<br>
-            Crash and you respawn at your last stop.
+            If you crash, you'll keep your passengers.
         </p>
         <button id="start-btn">START ROUTE 1</button>
     </div>
@@ -175,9 +179,9 @@
         const COLUMN_WIDTH = 40;
         const LANE_WIDTH = 40;
         const BUS_SIZE = 16;
+
         
         let scene, camera, renderer, clock;
-
         let bus, navArrow;
         let lanes = [];
         let currentLane = 0;
@@ -195,9 +199,9 @@
 
         // Cheat Code State
         let cheatMode = false;
+
         let cheatInput = "";
         const CHEAT_CODE = "debus";
-
         
         const carColors = [0xff5555, 0x5588ff, 0xffffff, 0x333333, 0xffaa00];
         const roofColors = [0x993333, 0x334499, 0x444444, 0x5d3a1a];
@@ -215,9 +219,9 @@
             camera.lookAt(0, 0, 0);
 
             renderer = new THREE.WebGLRenderer({ antialias: true });
+
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.shadowMap.enabled = true;
-
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             document.body.appendChild(renderer.domElement);
 
@@ -235,9 +239,9 @@
             sun.shadow.mapSize.height = 2048;
             scene.add(sun);
 
+
             clock = new THREE.Clock();
             createBus();
-
             setupRoute(1);
 
             window.addEventListener('resize', onWindowResize);
@@ -255,8 +259,8 @@
             const winMat = new THREE.MeshPhongMaterial({ color: 0x44ccff, transparent: true, opacity: 0.8 });
 
             const body = new THREE.Mesh(new THREE.BoxGeometry(16, 11, 24), bodyMat);
-            body.position.y = 7.5; body.castShadow = true; body.name = "chassis"; busGroup.add(body);
 
+            body.position.y = 7.5; body.castShadow = true; body.name = "chassis"; busGroup.add(body);
 
             const fWin = new THREE.Mesh(new THREE.BoxGeometry(14, 5, 1), winMat);
             fWin.position.set(0, 10, 12); busGroup.add(fWin);
@@ -275,8 +279,8 @@
             const headLightMat = new THREE.MeshPhongMaterial({ color: 0xffffff, emissive: 0xffffaa });
             const hL = new THREE.Mesh(headLightGeo, headLightMat);
             hL.position.set(5, 7, 12.1); busGroup.add(hL);
-            const hR = hL.clone(); hR.position.x = -5; busGroup.add(hR);
 
+            const hR = hL.clone(); hR.position.x = -5; busGroup.add(hR);
 
             const wheelGeo = new THREE.BoxGeometry(5, 5, 5);
             [[-7, 2.5, 8], [7, 2.5, 8], [-7, 2.5, -8], [7, 2.5, -8]].forEach(pos => {
@@ -295,8 +299,8 @@
 
             const topLabel = new THREE.Mesh(new THREE.PlaneGeometry(12, 10), tMat);
             topLabel.position.set(0, 13.1, 0); topLabel.rotation.x = -Math.PI/2; topLabel.rotation.z = Math.PI;
-            busGroup.add(topLabel);
 
+            busGroup.add(topLabel);
 
             const arrowGroup = new THREE.Group();
             const arrowHead = new THREE.Mesh(new THREE.ConeGeometry(7, 18, 4), new THREE.MeshPhongMaterial({ color: 0x00ff88, emissive: 0x00ff88, emissiveIntensity: 0.5 }));
@@ -315,9 +319,9 @@
                 const s = 24 - (i*6);
                 const layer = new THREE.Mesh(new THREE.BoxGeometry(s, 8, s), new THREE.MeshPhongMaterial({ color: 0x3a6f42 }));
                 layer.position.y = 16 + (i*6); layer.castShadow = true; tree.add(layer);
+
             }
             return tree;
-
         }
 
         function createHouse(isPickup = false) {
@@ -335,29 +339,29 @@
             if (isPickup) {
                 const marker = new THREE.Mesh(new THREE.BoxGeometry(8, 8, 8), new THREE.MeshPhongMaterial({ color: 0xffdb00, emissive: 0xffaa00 }));
                 marker.position.y = 45; marker.name = "marker"; house.add(marker);
+
             }
             return house;
-
         }
 
         // --- LANE GENERATION ---
         function createLane(index) {
             const isSchool = index === targetSchoolLane;
             const isBuffer = index < targetSchoolLane && index >= targetSchoolLane - 3;
-            const isPickupLane = pickupIndices.includes(index); // CRITICAL: Identify if this lane MUST have a house
+            const isPickupLane = pickupIndices.includes(index); 
             const prevType = lanes.length > 0 ? lanes[lanes.length-1].type : 'forest';
             
             let type = 'forest';
             if (isSchool) type = 'school';
             else if (isBuffer) type = 'forest'; 
-            else if (isPickupLane) type = 'forest'; // FORCE FOREST FOR PICKUP
+            else if (isPickupLane) type = 'forest'; 
             else if (index > 0) {
                 const possible = ['forest', 'road', 'river', 'rail'];
                 let filtered = possible.filter(t => {
                     if (prevType === 'road' && t === 'rail') return false;
+
                     if (prevType === 'rail' && t === 'road') return false;
                     if (prevType === 'river' && (t === 'river' || t === 'rail')) return false;
-
                     if (prevType === 'rail' && (t === 'river' || t === 'rail')) return false;
                     if (consecutiveRoads >= 3 && t === 'road') return false;
                     return true;
@@ -376,8 +380,8 @@
             if (type === 'rail') color = 0x555555;
             if (type === 'school') color = 0x777777;
 
-            const plane = new THREE.Mesh(new THREE.PlaneGeometry(2000, LANE_WIDTH), new THREE.MeshPhongMaterial({ color }));
 
+            const plane = new THREE.Mesh(new THREE.PlaneGeometry(2000, LANE_WIDTH), new THREE.MeshPhongMaterial({ color }));
             plane.rotation.x = -Math.PI / 2; plane.receiveShadow = true; laneGroup.add(plane);
 
             if (type === 'road') {
@@ -396,8 +400,8 @@
                     const sleeper = new THREE.Mesh(new THREE.BoxGeometry(4, 1, 30), new THREE.MeshPhongMaterial({ color: 0x4d2926 }));
                     sleeper.position.set(i * 20, 0.5, 0);
                     laneGroup.add(sleeper);
-                }
 
+                }
                 [10, -10].forEach(z => {
                     const track = new THREE.Mesh(new THREE.BoxGeometry(2000, 2, 2), new THREE.MeshPhongMaterial({ color: 0x222222 }));
                     track.position.set(0, 1.5, z);
@@ -409,7 +413,6 @@
 
             if (type === 'forest') {
                 const isStartHouse = index === 0;
-                // Determine a fixed X slot for pickup houses to ensure they aren't hidden by trees
                 const pickupX = (Math.floor(Math.random() * 6) - 3);
 
                 for (let i = -15; i < 15; i++) {
@@ -425,7 +428,6 @@
                     }
                     else {
                         const r = Math.random();
-                        // Ensure we don't put a tree on top of a pickup house slot
                         if (isPickupLane && Math.abs(i - pickupX) < 2) continue;
 
                         if (r < 0.20) { const t = createTree(); t.position.x = xPos; laneGroup.add(t); }
@@ -437,8 +439,8 @@
                 }
             } else if (type === 'school') {
                 const schoolBase = new THREE.Mesh(new THREE.BoxGeometry(150, 60, 80), new THREE.MeshPhongMaterial({color: 0xcc4444})); schoolBase.position.y = 30; schoolBase.castShadow = true; laneGroup.add(schoolBase);
-
                 const schoolRoof = new THREE.Mesh(new THREE.BoxGeometry(160, 5, 90), new THREE.MeshPhongMaterial({color: 0x222222})); schoolRoof.position.y = 60; laneGroup.add(schoolRoof);
+
                 const schoolDoor = new THREE.Mesh(new THREE.BoxGeometry(20, 30, 2), new THREE.MeshPhongMaterial({color: 0x333333})); schoolDoor.position.set(0, 15, 40.1); laneGroup.add(schoolDoor);
             }
 
@@ -457,8 +459,8 @@
                 const c = new THREE.Mesh(new THREE.BoxGeometry(25, 10, 16), new THREE.MeshPhongMaterial({color: carColors[Math.floor(Math.random()*carColors.length)]}));
                 c.position.y = 6; c.castShadow = true; obj.add(c);
                 const w1 = new THREE.Mesh(new THREE.BoxGeometry(20, 5, 1), new THREE.MeshPhongMaterial({color: 0x99ccff})); w1.position.set(0, 10, 8); obj.add(w1);
-
             } else if (lane.type === 'river') {
+
                 obj = new THREE.Mesh(new THREE.BoxGeometry(55, 6, 28), new THREE.MeshPhongMaterial({color: 0x5d3a1a})); obj.position.y = 3;
             } else if (lane.type === 'rail') {
                 obj = new THREE.Mesh(new THREE.BoxGeometry(400, 25, 30), new THREE.MeshPhongMaterial({color: 0x222222})); obj.position.y = 14; lane.speed = 18;
@@ -477,17 +479,15 @@
             lanes = [];
             routeLevel = level;
             targetSchoolLane = 15 + level * 6;
-
             studentsNeededForRoute = 2 + Math.floor(level/2);
+
             studentsOnBoard = 0; currentLane = 0;
             timeLeft = 45 + (level * 10);
             lastCheckpoint = { x: 0, z: 0, laneIndex: 0, students: 0 };
             
-            // PRE-CALCULATE PICKUP LOCATIONS TO GUARANTEE THEY EXIST
             pickupIndices = [];
             let pool = [];
             for(let p = 2; p < targetSchoolLane - 5; p++) pool.push(p);
-            // Shuffle
             for (let i = pool.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [pool[i], pool[j]] = [pool[j], pool[i]];
@@ -497,10 +497,10 @@
             document.getElementById('route-level').innerText = routeLevel;
             updateStudentUI();
             
-
             for (let i = -5; i <= targetSchoolLane + 8; i++) lanes.push(createLane(i));
             bus.position.set(0, 0, 0);
         }
+
 
         function startGame() {
             document.getElementById('overlay').classList.add('hidden');
@@ -517,11 +517,11 @@
                 msg(cheatMode ? "INVINCIBLE ON" : "INVINCIBLE OFF");
                 const chassis = bus.getObjectByName("chassis");
                 if (chassis) {
-
                     chassis.material.emissive.setHex(cheatMode ? 0x555555 : 0x000000);
                 }
                 cheatInput = "";
             }
+
 
             if (!gameActive) return;
             let nX = bus.position.x, nZ = bus.position.z, nL = currentLane;
@@ -537,12 +537,12 @@
 
             if (forward) {
                 const cur = lanes.find(l => l.index === currentLane);
-
                 if (!cheatMode && cur && cur.houses.some(h => h.active)) { routeFail("MISSING STUDENT!"); return; }
             }
 
             if (targetLane) {
                 targetLane.houses.forEach(h => {
+
                     if (h.active && Math.abs(nX - h.x) < 40) {
                         h.active = false; studentsOnBoard++;
                         updateStudentUI();
@@ -557,12 +557,12 @@
                         routeFail("INCOMPLETE ROUTE!");
                     } else {
                         setupRoute(routeLevel + 1); 
-
                         msg("LEVEL COMPLETE!");
                     }
                     return; 
                 }
             }
+
 
             bus.position.set(nX, 0, nZ);
             if (nL !== currentLane) { currentLane = nL; score = Math.max(score, currentLane); document.getElementById('score').innerText = score; }
@@ -576,15 +576,39 @@
         function routeFail(reason) {
             gameActive = false;
             document.getElementById('overlay').classList.remove('hidden');
-            document.getElementById('overlay-title').innerText = reason;
+            
+            let isDeath = reason.includes("YOU DIED");
+            // UPDATED TEXT HERE AS REQUESTED
+            document.getElementById('overlay-title').innerHTML = isDeath ? "YOU DIED.<br>HOOOOOOY" : reason.replace("\n", "<br>");
+            
+            let desc = "";
+            if (isDeath) {
 
-            document.getElementById('overlay-desc').innerText = reason === "INCOMPLETE ROUTE!" 
-                ? `You arrived at school with empty seats!\nYou needed ${studentsNeededForRoute} students.` 
-                : `Restarting Route Level ${routeLevel}`;
+                desc = "Don't worry, your students are still on board!<br>Respawning at the last pickup location.";
+            } else if (reason === "INCOMPLETE ROUTE!") {
+                desc = `You arrived at school with empty seats!<br>Restarting the level.`;
+                studentsOnBoard = 0;
+            } else if (reason === "MISSING STUDENT!") {
+                desc = "You skipped a student's house!<br>Restarting the level.";
+                studentsOnBoard = 0;
+            } else {
+                desc = `Restarting Route Level ${routeLevel}`;
+                studentsOnBoard = 0;
+            }
+            
+            document.getElementById('overlay-desc').innerHTML = desc;
             document.getElementById('start-btn').innerText = `TRY AGAIN`;
+            
             document.getElementById('start-btn').onclick = () => {
                 document.getElementById('overlay').classList.add('hidden');
-                setupRoute(routeLevel);
+                if (isDeath) {
+                    bus.position.set(lastCheckpoint.x, 0, lastCheckpoint.z);
+
+                    currentLane = lastCheckpoint.laneIndex;
+                    updateStudentUI();
+                } else {
+                    setupRoute(routeLevel);
+                }
                 gameActive = true;
             };
         }
@@ -597,9 +621,9 @@
                 if (!cheatMode) {
                     timeLeft -= delta;
                     if (timeLeft <= 0) { routeFail("OUT OF TIME!"); return; }
-
                 }
                 
+
                 const m = Math.floor(timeLeft/60), s = Math.floor(timeLeft%60);
                 document.getElementById('timer').innerText = cheatMode ? "∞:∞" : `${m}:${s<10?'0':''}${s}`;
 
@@ -617,30 +641,30 @@
                     });
 
                     if (lane.type === 'road' && Math.random() < 0.01) spawnVehicle(lane);
-
                     if (lane.type === 'river' && Math.random() < 0.02) spawnVehicle(lane);
                     if (lane.type === 'rail') { lane.trainTimer++; if(lane.trainTimer > 150) { spawnVehicle(lane); lane.trainTimer = 0; } }
+
 
                     lane.vehicles.forEach((v, idx) => {
                         v.position.x += lane.speed * lane.direction;
                         const bP = bus.position, vW = new THREE.Vector3(); v.getWorldPosition(vW);
                         if (Math.abs(bP.x - vW.x) < (lane.type==='rail'?180:26) && Math.abs(bP.z - vW.z) < 18) {
                             if (lane.type === 'river') { if(currentLane === lane.index) { onLog = true; bus.position.x += lane.speed * lane.direction; } }
-                            else if (!cheatMode) { bus.position.set(lastCheckpoint.x, 0, lastCheckpoint.z); currentLane = lastCheckpoint.laneIndex; studentsOnBoard = lastCheckpoint.students; updateStudentUI(); msg("RESPAWNED"); }
+                            else if (!cheatMode) { routeFail("YOU DIED.\nHOOOOOOY"); }
                         }
                         if (Math.abs(v.position.x) > 1100) { lane.mesh.remove(v); lane.vehicles.splice(idx, 1); }
                     });
-                    if (!cheatMode && currentLane === lane.index && lane.type === 'river' && !onLog) { bus.position.set(lastCheckpoint.x, 0, lastCheckpoint.z); currentLane = lastCheckpoint.laneIndex; studentsOnBoard = lastCheckpoint.students; updateStudentUI(); msg("WET BUS!"); }
+                    if (!cheatMode && currentLane === lane.index && lane.type === 'river' && !onLog) { routeFail("YOU DIED.\nHOOOOOOY"); }
                 });
 
                 if (!target) {
                     const sch = lanes.find(l => l.type === 'school');
                     if (sch) target = new THREE.Vector3(0, 25, sch.mesh.position.z);
                 }
-
                 if (target) {
                     const d = new THREE.Vector3().subVectors(target, bus.position).normalize();
                     navArrow.rotation.y = Math.atan2(d.x, d.z);
+
                 }
 
                 camera.position.z = THREE.MathUtils.lerp(camera.position.z, bus.position.z - 220, 0.1);
@@ -657,7 +681,6 @@
         }
 
         window.onload = init;
-
     </script>
 </body>
 </html>
