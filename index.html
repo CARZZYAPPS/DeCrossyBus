@@ -11,7 +11,7 @@
             padding: 0;
             overflow: hidden;
             font-family: 'Segoe UI', Arial, sans-serif;
-            background-color: #71c5cf; /* Sky Blue */
+            background-color: #71c5cf;
         }
 
         #ui {
@@ -117,6 +117,37 @@
             box-shadow: 0 4px 0 #b39a00;
         }
 
+        #touch-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            transform: none;
+            display: grid;
+            grid-template-columns: repeat(3, 70px);
+            grid-template-rows: repeat(2, 70px);
+            gap: 10px;
+            z-index: 5;
+            pointer-events: auto;
+        }
+
+        .control-btn {
+            width: 70px;
+            height: 70px;
+            background: #00d1b2;
+            border: none;
+            border-radius: 18px;
+            box-shadow: 0 6px 0 rgba(0,0,0,0.2);
+            color: #fff;
+            font-size: 28px;
+            font-weight: 900;
+            touch-action: manipulation;
+        }
+
+        .control-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+        }
+
         #message-box {
 
             position: absolute;
@@ -164,6 +195,14 @@
         <div id="timer">00:00</div>
     </div>
 
+    <div id="touch-controls">
+        <div></div>
+        <button class="control-btn" data-dir="up">↑</button>
+        <div></div>
+        <button class="control-btn" data-dir="left">←</button>
+        <button class="control-btn" data-dir="down">↓</button>
+        <button class="control-btn" data-dir="right">→</button>
+    </div>
 
     <div id="message-box">CHECKPOINT!</div>
 
@@ -204,12 +243,6 @@
         
         let timeLeft = 0;
         let lastCheckpoint = { x: 0, z: 0, laneIndex: 0, students: 0 };
-
-        // Cheat Code State
-        let cheatMode = false;
-
-        let cheatInput = "";
-        const CHEAT_CODE = "JHHSDDHDFSADYRHFRJKFHSDKHSDHCNSDHBFLSHVFJDFHFKJDFHDFJKJFHLDHFDHFKDF";
         
         const carColors = [0xff5555, 0x5588ff, 0xffffff, 0x333333, 0xffaa00];
         const roofColors = [0x993333, 0x334499, 0x444444, 0x5d3a1a];
@@ -255,6 +288,12 @@
             window.addEventListener('resize', onWindowResize);
             window.addEventListener('keydown', handleKeyDown);
             document.getElementById('start-btn').onclick = startGame;
+            document.querySelectorAll('.control-btn').forEach(btn => {
+                btn.addEventListener('pointerdown', (e) => {
+                    e.preventDefault();
+                    moveInDirection(btn.dataset.dir);
+                });
+            });
 
             animate();
         }
@@ -446,10 +485,68 @@
                     }
                 }
             } else if (type === 'school') {
-                const schoolBase = new THREE.Mesh(new THREE.BoxGeometry(150, 60, 80), new THREE.MeshPhongMaterial({color: 0xcc4444})); schoolBase.position.y = 30; schoolBase.castShadow = true; laneGroup.add(schoolBase);
-                const schoolRoof = new THREE.Mesh(new THREE.BoxGeometry(160, 5, 90), new THREE.MeshPhongMaterial({color: 0x222222})); schoolRoof.position.y = 60; laneGroup.add(schoolRoof);
+                const schoolGroup = new THREE.Group();
 
-                const schoolDoor = new THREE.Mesh(new THREE.BoxGeometry(20, 30, 2), new THREE.MeshPhongMaterial({color: 0x333333})); schoolDoor.position.set(0, 15, 40.1); laneGroup.add(schoolDoor);
+                const schoolBase = new THREE.Mesh(
+                    new THREE.BoxGeometry(150, 60, 80),
+                    new THREE.MeshPhongMaterial({ color: 0xcc4444 })
+                );
+                schoolBase.position.y = 30;
+                schoolBase.castShadow = true;
+                schoolGroup.add(schoolBase);
+
+                const schoolRoof = new THREE.Mesh(
+                    new THREE.BoxGeometry(170, 10, 90),
+                    new THREE.MeshPhongMaterial({ color: 0x222222 })
+                );
+                schoolRoof.position.y = 65;
+                schoolRoof.castShadow = true;
+                schoolGroup.add(schoolRoof);
+
+                const schoolDoor = new THREE.Mesh(
+                    new THREE.BoxGeometry(18, 32, 2),
+                    new THREE.MeshPhongMaterial({ color: 0x333333 })
+                );
+                schoolDoor.position.set(0, 16, 41.1);
+                schoolGroup.add(schoolDoor);
+
+                const signCanvas = document.createElement('canvas');
+                signCanvas.width = 256;
+                signCanvas.height = 64;
+                const signCtx = signCanvas.getContext('2d');
+                signCtx.fillStyle = '#ffffff';
+                signCtx.fillRect(0, 0, 256, 64);
+                signCtx.fillStyle = '#333333';
+                signCtx.font = 'bold 24px Arial';
+                signCtx.textAlign = 'center';
+                signCtx.textBaseline = 'middle';
+                signCtx.fillText('SCHOOL', 128, 32);
+                const signTexture = new THREE.CanvasTexture(signCanvas);
+                const sign = new THREE.Mesh(
+                    new THREE.PlaneGeometry(90, 22),
+                    new THREE.MeshPhongMaterial({ map: signTexture, transparent: true })
+                );
+                sign.position.set(0, 52, 41.2);
+                schoolGroup.add(sign);
+
+                const windowMat = new THREE.MeshPhongMaterial({ color: 0x88c4ff, emissive: 0x3f7fb5, emissiveIntensity: 0.2 });
+                for (let i = -1; i <= 1; i++) {
+                    const win = new THREE.Mesh(new THREE.BoxGeometry(20, 14, 1), windowMat);
+                    win.position.set(i * 40, 32, 41.2);
+                    schoolGroup.add(win);
+                }
+
+                const wingMat = new THREE.MeshPhongMaterial({ color: 0xbb3333 });
+                const leftWing = new THREE.Mesh(new THREE.BoxGeometry(40, 40, 80), wingMat);
+                leftWing.position.set(-100, 20, 0);
+                leftWing.castShadow = true;
+                schoolGroup.add(leftWing);
+
+                const rightWing = leftWing.clone();
+                rightWing.position.x = 100;
+                schoolGroup.add(rightWing);
+
+                laneGroup.add(schoolGroup);
             }
 
             if ((type === 'road' || type === 'river') && index > 0) {
@@ -468,12 +565,30 @@
                 c.position.y = 6; c.castShadow = true; obj.add(c);
                 const w1 = new THREE.Mesh(new THREE.BoxGeometry(20, 5, 1), new THREE.MeshPhongMaterial({color: 0x99ccff})); w1.position.set(0, 10, 8); obj.add(w1);
             } else if (lane.type === 'river') {
-
                 obj = new THREE.Mesh(new THREE.BoxGeometry(55, 6, 28), new THREE.MeshPhongMaterial({color: 0x5d3a1a})); obj.position.y = 3;
             } else if (lane.type === 'rail') {
                 obj = new THREE.Mesh(new THREE.BoxGeometry(400, 25, 30), new THREE.MeshPhongMaterial({color: 0x222222})); obj.position.y = 14; lane.speed = 18;
             }
-            obj.position.x = x !== undefined ? x : lane.direction * -900;
+
+            let spawnX = x !== undefined ? x : lane.direction * -900;
+            const minGap = lane.type === 'rail' ? 500 : lane.type === 'river' ? 100 : 90;
+            const overlapsExisting = () => lane.vehicles.some(v => Math.abs(v.position.x - spawnX) < minGap);
+
+            if (x !== undefined) {
+                let attempts = 0;
+                while (attempts < 20 && overlapsExisting()) {
+                    spawnX = (Math.random() - 0.5) * 1200;
+                    attempts++;
+                }
+            } else {
+                let attempts = 0;
+                while (attempts < 20 && overlapsExisting()) {
+                    spawnX += lane.direction * minGap;
+                    attempts++;
+                }
+            }
+
+            obj.position.x = spawnX;
             lane.mesh.add(obj); lane.vehicles.push(obj);
         }
 
@@ -517,63 +632,64 @@
             gameActive = true;
         }
 
-        function handleKeyDown(e) {
-            cheatInput += e.key.toLowerCase();
-            if (cheatInput.length > 5) cheatInput = cheatInput.slice(-5);
-            if (cheatInput === CHEAT_CODE) {
-                cheatMode = !cheatMode;
-                msg(cheatMode ? "INVINCIBLE ON" : "INVINCIBLE OFF");
-                const chassis = bus.getObjectByName("chassis");
-                if (chassis) {
-                    chassis.material.emissive.setHex(cheatMode ? 0x555555 : 0x000000);
-                }
-                cheatInput = "";
-            }
-
-
-            if (!gameActive) return;
+        function moveInDirection(direction) {
             let nX = bus.position.x, nZ = bus.position.z, nL = currentLane;
             let forward = false;
 
-            if (e.key === 'ArrowUp' || e.key === 'w') { nZ += LANE_WIDTH; nL++; forward = true; }
-            else if (e.key === 'ArrowDown' || e.key === 's') { if (currentLane > -3) { nZ -= LANE_WIDTH; nL--; } }
-            else if (e.key === 'ArrowLeft' || e.key === 'a') { nX += COLUMN_WIDTH; }
-            else if (e.key === 'ArrowRight' || e.key === 'd') { nX -= COLUMN_WIDTH; }
+            if (direction === 'up') { nZ += LANE_WIDTH; nL++; forward = true; }
+            else if (direction === 'down') { if (currentLane > -3) { nZ -= LANE_WIDTH; nL--; } }
+            else if (direction === 'left') { nX += COLUMN_WIDTH; }
+            else if (direction === 'right') { nX -= COLUMN_WIDTH; }
 
             const targetLane = lanes.find(l => l.index === nL);
             if (targetLane && targetLane.solids.includes(nX)) return;
 
             if (forward) {
                 const cur = lanes.find(l => l.index === currentLane);
-                if (!cheatMode && cur && cur.houses.some(h => h.active)) { routeFail("MISSING STUDENT!"); return; }
+                if (cur && cur.houses.some(h => h.active)) { routeFail("MISSING STUDENT!"); return; }
             }
 
             if (targetLane) {
                 targetLane.houses.forEach(h => {
-
                     if (h.active && Math.abs(nX - h.x) < 40) {
-                        h.active = false; studentsOnBoard++;
+                        h.active = false;
+                        studentsOnBoard++;
                         updateStudentUI();
-                        const m = h.mesh.getObjectByName("marker"); if(m) m.visible = false;
+                        const m = h.mesh.getObjectByName("marker"); if (m) m.visible = false;
                         lastCheckpoint = { x: nX, z: nZ, laneIndex: nL, students: studentsOnBoard };
                         msg("PICKED UP!");
                     }
                 });
 
-                if (targetLane.type === 'school') { 
+                if (targetLane.type === 'school') {
+                    const inSchoolEntrance = Math.abs(nX) <= 20;
                     if (studentsOnBoard < studentsNeededForRoute) {
                         routeFail("INCOMPLETE ROUTE!");
+                    } else if (!inSchoolEntrance) {
+                        msg("DRIVE INTO SCHOOL!");
                     } else {
-                        setupRoute(routeLevel + 1); 
+                        setupRoute(routeLevel + 1);
                         msg("LEVEL COMPLETE!");
                     }
-                    return; 
+                    return;
                 }
             }
 
-
             bus.position.set(nX, 0, nZ);
             if (nL !== currentLane) { currentLane = nL; score = Math.max(score, currentLane); document.getElementById('score').innerText = score; }
+        }
+
+        function handleKeyDown(e) {
+            if (!gameActive) return;
+            let direction = null;
+            if (e.key === 'ArrowUp' || e.key === 'w') direction = 'up';
+            else if (e.key === 'ArrowDown' || e.key === 's') direction = 'down';
+            else if (e.key === 'ArrowLeft' || e.key === 'a') direction = 'left';
+            else if (e.key === 'ArrowRight' || e.key === 'd') direction = 'right';
+            if (direction) {
+                e.preventDefault();
+                moveInDirection(direction);
+            }
         }
 
         function msg(t) {
@@ -626,14 +742,12 @@
             if (gameActive) {
                 const delta = clock.getDelta();
                 
-                if (!cheatMode) {
-                    timeLeft -= delta;
-                    if (timeLeft <= 0) { routeFail("OUT OF TIME!"); return; }
-                }
+                timeLeft -= delta;
+                if (timeLeft <= 0) { routeFail("OUT OF TIME!"); return; }
                 
 
                 const m = Math.floor(timeLeft/60), s = Math.floor(timeLeft%60);
-                document.getElementById('timer').innerText = cheatMode ? "∞:∞" : `${m}:${s<10?'0':''}${s}`;
+                document.getElementById('timer').innerText = `${m}:${s<10?'0':''}${s}`;
 
                 let onLog = false, target = null;
                 const pulse = 1.3 + Math.sin(Date.now() * 0.01) * 0.4;
@@ -657,12 +771,12 @@
                         v.position.x += lane.speed * lane.direction;
                         const bP = bus.position, vW = new THREE.Vector3(); v.getWorldPosition(vW);
                         if (Math.abs(bP.x - vW.x) < (lane.type==='rail'?180:26) && Math.abs(bP.z - vW.z) < 18) {
-                            if (lane.type === 'river') { if(currentLane === lane.index) { onLog = true; bus.position.x += lane.speed * lane.direction; } }
-                            else if (!cheatMode) { routeFail("YOU DIED.\nHOOOOOOY"); }
+                            if (lane.type === 'river') { if (currentLane === lane.index) { onLog = true; bus.position.x += lane.speed * lane.direction; } }
+                            else { routeFail("YOU DIED.\nHOOOOOOY"); }
                         }
                         if (Math.abs(v.position.x) > 1100) { lane.mesh.remove(v); lane.vehicles.splice(idx, 1); }
                     });
-                    if (!cheatMode && currentLane === lane.index && lane.type === 'river' && !onLog) { routeFail("YOU DIED.\nHOOOOOOY"); }
+                    if (currentLane === lane.index && lane.type === 'river' && !onLog) { routeFail("YOU DIED.\nHOOOOOOY"); }
                 });
 
                 if (!target) {
@@ -690,20 +804,5 @@
 
         window.onload = init;
     </script>
-
-<!--Start of Tawk.to Script-->
-<script type="text/javascript">
-var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
-(function(){
-var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
-s1.async=true;
-s1.src='https://embed.tawk.to/6a13a7770e89d01c34a57289/1jpeccafp';
-s1.charset='UTF-8';
-s1.setAttribute('crossorigin','*');
-s0.parentNode.insertBefore(s1,s0);
-})();
-</script>
-<!--End of Tawk.to Script-->
-    
 </body>
 </html>
